@@ -1,2 +1,5 @@
 run:
 	go run ./...
+
+import:
+    goimports -w -d .
