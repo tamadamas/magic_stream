@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tamadamas/magic_stream/server/go/internal/app_errors"
 	"github.com/tamadamas/magic_stream/server/go/internal/repositories"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -23,7 +24,7 @@ func (h *MoviesHandler) GetAll() gin.HandlerFunc {
 
 		movies, err := h.repo.All(ctx)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			c.Error(err)
 			return
 		}
 
@@ -39,10 +40,11 @@ func (h *MoviesHandler) GetByID() gin.HandlerFunc {
 		movie, err := h.repo.Find(ctx, id)
 		if err != nil {
 			if errors.Is(err, mongo.ErrNoDocuments) {
-				c.JSON(http.StatusNotFound, gin.H{"error": "Movie not found"})
-			} else {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				c.Error(app_errors.NewNotFoundError(err, "Movie not found"))
+				return
 			}
+
+			c.Error(err)
 			return
 		}
 

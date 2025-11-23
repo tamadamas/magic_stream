@@ -1,37 +1,42 @@
 package main
 
 import (
-	"log"
+	"log/slog"
 	"net/http"
+	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/tamadamas/magic_stream/server/go/internal/config"
 	"github.com/tamadamas/magic_stream/server/go/internal/handlers"
+	"github.com/tamadamas/magic_stream/server/go/internal/middlewares"
 	"github.com/tamadamas/magic_stream/server/go/internal/repositories"
 )
 
 func main() {
-	loadEnv()
-	db, err := config.ConnectToDatabase()
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
 
-	if err != nil {
-		log.Fatal(err)
-	}
+	loadEnv()
+	db := config.ConnectToDatabase()
 
 	moviesHandler := handlers.NewMoviesHandler(repositories.NewMoviesRepository(db))
 
-	router := gin.Default()
+	r := gin.Default()
+	r.Use(middlewares.RequestIDMiddleware())
+	r.Use(middlewares.TimeoutMiddleware(30 * time.Second))
+	r.Use(middlewares.ErrorMiddleware())
 
-	router.GET("/health", func(c *gin.Context) {
+	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "OK"})
 	})
 
-	router.GET("/movies", moviesHandler.GetAll())
-	router.GET("/movies/:id", moviesHandler.GetByID())
+	r.GET("/movies", moviesHandler.GetAll())
+	r.GET("/movies/:id", moviesHandler.GetByID())
 
-	if err := router.Run(":3000"); err != nil {
-		log.Fatal("Failed to start server:", err)
+	if err := r.Run(":3000"); err != nil {
+		slog.Error(err.Error())
+		return
 	}
 }
 
@@ -39,6 +44,6 @@ func loadEnv() {
 	err := godotenv.Load(".env")
 
 	if err != nil {
-		log.Println("Can't find .env file")
+		slog.Error("Can't find .env file")
 	}
 }

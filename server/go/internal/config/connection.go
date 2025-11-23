@@ -1,18 +1,19 @@
 package config
 
 import (
-	"log"
+	"log/slog"
 	"os"
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-func ConnectToDatabase() (*mongo.Database, error) {
+func ConnectToDatabase() *mongo.Database {
 	uri := os.Getenv("MONGO_URI")
 
 	if uri == "" {
-		log.Fatal("Mongo URI is not set")
+		slog.Error("Mongo URI is not set")
+		return nil
 	}
 
 	opts := options.Client().ApplyURI(uri)
@@ -20,15 +21,16 @@ func ConnectToDatabase() (*mongo.Database, error) {
 	client, err := mongo.Connect(opts)
 
 	if err != nil {
-		return nil, err
+		slog.Error(err.Error())
+		return nil
 	}
 
 	dbName := os.Getenv("MONGO_DB")
 
 	if dbName == "" {
-		log.Fatal("Mongo DB Name is not set")
+		slog.Error("Mongo DB Name is not set")
+		return nil
 	}
 
-	db := client.Database(dbName)
-	return db, nil
+	return client.Database(dbName)
 }
