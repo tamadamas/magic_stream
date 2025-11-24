@@ -2,7 +2,9 @@ package repositories
 
 import (
 	"context"
+	"errors"
 
+	"github.com/tamadamas/magic_stream/server/go/internal/app_errors"
 	"github.com/tamadamas/magic_stream/server/go/internal/models"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -29,24 +31,20 @@ func (r *MoviesRepository) All(ctx context.Context) ([]models.Movie, error) {
 	}
 	defer cur.Close(ctx)
 
-	for cur.Next(ctx) {
-		var m models.Movie
-		if err := cur.Decode(&m); err != nil {
-			return nil, err
-		}
-		movies = append(movies, m)
+	if err = cur.All(ctx, &movies); err != nil {
+		return nil, errors.New("Failed to get movies")
 	}
 
-	return movies, cur.Err()
+	return movies, nil
 }
 
 func (r *MoviesRepository) Find(ctx context.Context, id string) (*models.Movie, error) {
 	var movie models.Movie
 
-	err := r.col.FindOne(ctx, bson.M{"_id": id}).Decode(&movie)
+	err := r.col.FindOne(ctx, bson.M{"imdb_id": id}).Decode(&movie)
 
 	if err != nil {
-		return nil, err
+		return nil, app_errors.NewNotFoundError(nil, "Movie not found")
 	}
 
 	return &movie, nil

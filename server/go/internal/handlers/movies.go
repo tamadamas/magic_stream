@@ -34,8 +34,13 @@ func (h *MoviesHandler) GetAll() gin.HandlerFunc {
 
 func (h *MoviesHandler) GetByID() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		id := c.Param("id")
+		id := c.Param("imdb_id")
 		ctx := c.Request.Context()
+
+		if id == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "id is required"})
+			return
+		}
 
 		movie, err := h.repo.Find(ctx, id)
 		if err != nil {
