@@ -33,6 +33,7 @@ func main() {
 
 	r.GET("/movies", moviesHandler.GetAll())
 	r.GET("/movies/:imdb_id", moviesHandler.GetByID())
+	r.POST("/movies", moviesHandler.AddMovie())
 
 	if err := r.Run(":3000"); err != nil {
 		slog.Error(err.Error())

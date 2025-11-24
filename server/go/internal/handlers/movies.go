@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tamadamas/magic_stream/server/go/internal/app_errors"
+	"github.com/tamadamas/magic_stream/server/go/internal/models"
 	"github.com/tamadamas/magic_stream/server/go/internal/repositories"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -55,5 +56,24 @@ func (h *MoviesHandler) GetByID() gin.HandlerFunc {
 
 		c.JSON(http.StatusOK, movie)
 	}
+}
 
+func (h *MoviesHandler) AddMovie() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.Request.Context()
+
+		var movie models.Movie
+
+		if err := c.ShouldBindJSON(movie); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid params"})
+			return
+		}
+
+		if err := h.repo.Create(ctx, &movie); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusCreated, gin.H{"status": "OK"})
+	}
 }

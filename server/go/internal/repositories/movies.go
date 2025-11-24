@@ -3,7 +3,9 @@ package repositories
 import (
 	"context"
 	"errors"
+	"fmt"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/tamadamas/magic_stream/server/go/internal/app_errors"
 	"github.com/tamadamas/magic_stream/server/go/internal/models"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -48,4 +50,20 @@ func (r *MoviesRepository) Find(ctx context.Context, id string) (*models.Movie, 
 	}
 
 	return &movie, nil
+}
+
+func (r *MoviesRepository) Create(ctx context.Context, movie *models.Movie) error {
+
+	if err := validator.New().Struct(movie); err != nil {
+		return fmt.Errorf("Failed to create movie: %w", err)
+	}
+
+	_, err := r.col.InsertOne(ctx, movie)
+
+	if err != nil {
+		return fmt.Errorf("Failed to create movie: %w", err)
+
+	}
+
+	return nil
 }
