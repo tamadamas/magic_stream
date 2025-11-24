@@ -21,6 +21,7 @@ func main() {
 	db := config.ConnectToDatabase()
 
 	moviesHandler := handlers.NewMoviesHandler(repositories.NewMoviesRepository(db))
+	usersHandler := handlers.NewUsersHandler(repositories.NewUsersRepository(db))
 
 	r := gin.Default()
 	r.Use(middlewares.RequestIDMiddleware())
@@ -34,6 +35,8 @@ func main() {
 	r.GET("/movies", moviesHandler.GetAll())
 	r.GET("/movies/:imdb_id", moviesHandler.GetByID())
 	r.POST("/movies", moviesHandler.AddMovie())
+
+	r.POST("/register", usersHandler.Register())
 
 	if err := r.Run(":3000"); err != nil {
 		slog.Error(err.Error())
