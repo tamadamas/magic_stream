@@ -46,7 +46,7 @@ func (r *MoviesRepository) Find(ctx context.Context, id string) (*models.Movie, 
 	err := r.col.FindOne(ctx, bson.M{"imdb_id": id}).Decode(&movie)
 
 	if err != nil {
-		return nil, app_errors.NewNotFoundError(nil, "Movie not found")
+		return nil, app_errors.NewNotFoundError(nil, "Movie is not found")
 	}
 
 	return &movie, nil

@@ -37,6 +37,7 @@ func main() {
 	r.POST("/movies", moviesHandler.AddMovie())
 
 	r.POST("/register", usersHandler.Register())
+	r.POST("/login", usersHandler.Login())
 
 	if err := r.Run(":3000"); err != nil {
 		slog.Error(err.Error())

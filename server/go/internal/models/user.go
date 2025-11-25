@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -20,4 +21,21 @@ type User struct {
 
 	CreatedAt time.Time `bson:"created_at" json:"created_at"`
 	UpdatedAt time.Time `bson:"updated_at" json:"updated_at"`
+}
+
+type UserLogin struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=10,max=100"`
+}
+
+type UserResponse struct {
+	UserID       string  `json:"user_id"`
+	Email        string  `json:"email"`
+	FirstName    string  `json:"first_name"`
+	LastName     string  `json:"last_name"`
+	Role         string  `json:"role"`
+	Genres       []Genre `json:"genre"`
+	Token        string  `json:"token"`
+	RefreshToken string  `json:"refresh_token"`
+	jwt.RegisteredClaims
 }

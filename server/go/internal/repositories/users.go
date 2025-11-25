@@ -2,10 +2,12 @@ package repositories
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/tamadamas/magic_stream/server/go/internal/app_errors"
 	"github.com/tamadamas/magic_stream/server/go/internal/models"
 	"github.com/tamadamas/magic_stream/server/go/internal/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -55,4 +57,41 @@ func (r *UsersRepository) Create(ctx context.Context, user *models.User) error {
 	}
 
 	return nil
+}
+
+func (r *UsersRepository) Login(ctx context.Context, userLogin *models.UserLogin) (*models.User, error) {
+	var user models.User
+
+	err := r.col.FindOne(ctx, bson.M{"email": userLogin.Email}).Decode(&user)
+
+	if err != nil {
+		return nil, app_errors.NewNotFoundError(nil, "User is not found")
+	}
+
+	correntPass := utils.VerifyPassword(userLogin.Password, user.Password)
+
+	if !correntPass {
+		return nil, errors.New("Invalid email or passwpord")
+	}
+
+	token, refreshToken, err := utils.GenerateTokens(&user)
+
+	if err != nil {
+		return nil, errors.New("Something went wrong")
+	}
+
+	updateAt, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+
+	updateData := bson.M{
+		"$set": bson.M{
+			"token":         token,
+			"refresh_token": refreshToken,
+			"update_at":     updateAt,
+		},
+	}
+
+	_, err = r.col.UpdateOne(ctx, bson.M{"user_id": user.UserID}, updateData)
+
+	return &user, nil
+
 }

@@ -35,3 +35,35 @@ func (h *UsersHandler) Register() gin.HandlerFunc {
 		c.JSON(http.StatusCreated, gin.H{"status": "OK"})
 	}
 }
+
+func (h *UsersHandler) Login() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.Request.Context()
+
+		var userLogin models.UserLogin
+
+		if err := c.ShouldBindJSON(&userLogin); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid params"})
+			return
+		}
+
+		user, err := h.repo.Login(ctx, &userLogin)
+
+		if err != nil {
+			c.Error(err)
+			return
+		}
+
+		c.JSON(http.StatusOK, models.UserResponse{
+			UserID:       user.UserID,
+			Email:        user.Email,
+			FirstName:    user.FirstName,
+			LastName:     user.LastName,
+			Role:         user.Role,
+			Genres:       user.Genres,
+			Token:        user.Token,
+			RefreshToken: user.RefreshToken,
+		})
+	}
+
+}
