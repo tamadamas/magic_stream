@@ -77,3 +77,9 @@ func (h *MoviesHandler) AddMovie() gin.HandlerFunc {
 		c.JSON(http.StatusCreated, gin.H{"status": "OK"})
 	}
 }
+
+func (h *MoviesHandler) GenresList() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// ctx := c.Request.Context()
+	}
+}

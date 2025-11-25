@@ -67,3 +67,15 @@ func (h *UsersHandler) Login() gin.HandlerFunc {
 	}
 
 }
+
+func (h *UsersHandler) Logout() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// ctx := c.Request.Context()
+	}
+}
+
+func (h *UsersHandler) RefreshToken() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// ctx := c.Request.Context()
+	}
+}
